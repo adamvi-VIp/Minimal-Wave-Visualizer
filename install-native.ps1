@@ -68,6 +68,18 @@ function Get-HelperLaunchArguments($target, [string[]]$extraArguments = @()) {
   return @($arguments)
 }
 
+function Get-HelperAttachStartParameters($target) {
+  $parameters = @{
+    FilePath = $helperExe
+    WorkingDirectory = $installDir
+    WindowStyle = "Hidden"
+  }
+  if ($target.Aumid) {
+    $parameters.ArgumentList = @('--spotify-aumid="{0}"' -f $target.Aumid)
+  }
+  return $parameters
+}
+
 function Get-ProtocolCommand($target) {
   $arguments = Get-HelperLaunchArguments $target @('--protocol-uri="%1"')
   return ('"{0}" {1}' -f $helperExe, ($arguments -join " "))
@@ -245,6 +257,14 @@ function Invoke-SelfCheck {
   if (($storeArguments -join " ") -notmatch '--spotify-aumid="SpotifyAB\.Test!Spotify"') {
     throw "Store AUMID self-check failed."
   }
+  $classicAttach = Get-HelperAttachStartParameters $classic
+  $storeAttach = Get-HelperAttachStartParameters $store
+  if ($classicAttach.ContainsKey("ArgumentList")) {
+    throw "Classic helper attach must omit an empty ArgumentList."
+  }
+  if (($storeAttach.ArgumentList -join " ") -notmatch '--spotify-aumid="SpotifyAB\.Test!Spotify"') {
+    throw "Store helper attach argument self-check failed."
+  }
   if ((Get-ProtocolCommand $store) -notmatch '--protocol-uri="%1"') {
     throw "Protocol command self-check failed."
   }
@@ -297,8 +317,8 @@ try {
   Update-LaunchIntegration $target
 
   if (Get-Process -Name "Spotify" -ErrorAction SilentlyContinue) {
-    $attachArguments = if ($target.Aumid) { @('--spotify-aumid="{0}"' -f $target.Aumid) } else { @() }
-    Start-Process -FilePath $helperExe -ArgumentList $attachArguments -WorkingDirectory $installDir -WindowStyle Hidden
+    $helperStartParameters = Get-HelperAttachStartParameters $target
+    Start-Process @helperStartParameters
   }
 } finally {
   if (Test-Path -LiteralPath $downloadDir) {
