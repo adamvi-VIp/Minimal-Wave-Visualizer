@@ -1,0 +1,118 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Validate extension
+        shell: pwsh
+        run: |
+          node --check .\minimal-wave-visualizer.js
+          node .\minimal-wave-visualizer.js --self-check
+
+      - name: Validate PowerShell
+        shell: pwsh
+        run: |
+          $scripts = @(
+            '.\install-native.ps1',
+            '.\uninstall-native.ps1',
+            '.\scripts\apply-from-source.ps1'
+          )
+          foreach ($script in $scripts) {
+            $tokens = $null
+            $errors = $null
+            [void][System.Management.Automation.Language.Parser]::ParseFile(
+              (Resolve-Path $script),
+              [ref]$tokens,
+              [ref]$errors
+            )
+            if ($errors.Count) {
+              throw ($errors | Out-String)
+            }
+          }
+          .\install-native.ps1 -SelfCheck
+          .\uninstall-native.ps1 -SelfCheck
+
+      - name: Publish and test native helper
+        shell: pwsh
+        run: |
+          dotnet publish .\bass-helper\MinimalWaveBassHelper.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:DebugType=None `
+            -p:DebugSymbols=false `
+            -o .\artifacts\native
+          $selfCheck = Start-Process `
+            -FilePath .\artifacts\native\MinimalWaveBassHelper.exe `
+            -ArgumentList '--self-check' `
+            -Wait `
+            -PassThru `
+            -WindowStyle Hidden
+          if ($selfCheck.ExitCode -ne 0) {
+            throw 'Native helper self-check failed.'
+          }
+
+      - name: Validate Marketplace files and images
+        shell: pwsh
+        run: |
+          $manifest = Get-Content .\manifest.json -Raw -Encoding UTF8 | ConvertFrom-Json
+          foreach ($property in 'name', 'description', 'main', 'preview', 'readme') {
+            if (-not $manifest.$property) {
+              throw "manifest.json is missing $property."
+            }
+          }
+          foreach ($path in $manifest.main, $manifest.preview, $manifest.readme) {
+            if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+              throw "Manifest path does not exist: $path"
+            }
+          }
+
+          Add-Type -AssemblyName System.Drawing
+          $expected = @{
+            '.\assets\readme-hero.png' = @(1600, 900)
+            '.\assets\marketplace-preview.png' = @(1024, 1024)
+          }
+          foreach ($entry in $expected.GetEnumerator()) {
+            $image = [Drawing.Image]::FromFile((Resolve-Path $entry.Key))
+            try {
+              if ($image.RawFormat.Guid -ne [Drawing.Imaging.ImageFormat]::Png.Guid -or
+                  $image.Width -ne $entry.Value[0] -or
+                  $image.Height -ne $entry.Value[1]) {
+                throw "Invalid PNG asset: $($entry.Key)"
+              }
+            } finally {
+              $image.Dispose()
+            }
+          }
+
+          $trackedBinaries = @(git ls-files '*.exe' '*.dll' '*.pdb')
+          if ($trackedBinaries.Count) {
+            throw "Generated binaries are tracked: $($trackedBinaries -join ', ')"
+          }
+          git diff --check
+
+      - name: Upload tested helper artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: MinimalWaveBassHelper-win-x64
+          path: artifacts/native/MinimalWaveBassHelper.exe
+          if-no-files-found: error

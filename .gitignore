@@ -1,0 +1,10 @@
+bass-helper/bin/
+bass-helper/obj/
+.agents/
+.codex/
+.impeccable/
+artifacts/
+release/
+tmp/
+*.tmp
+*.log
