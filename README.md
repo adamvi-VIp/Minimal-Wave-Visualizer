@@ -25,7 +25,7 @@ Install **Minimal Wave Visualizer** from Spicetify Marketplace. The extension st
 Native FFT is the intended full-fidelity experience and is required for exact sub-bass response. On Windows 11 x64, open a normal, non-administrator PowerShell window and run:
 
 ```powershell
-irm https://raw.githubusercontent.com/Adamvi/Minimal-Wave-Visualizer/main/install-native.ps1 | iex
+irm https://raw.githubusercontent.com/adamvi-VIp/Minimal-Wave-Visualizer/main/install-native.ps1 | iex
 ```
 
 The label changes to `MWV v1.0 FFT` as soon as the helper sends its first valid frame. Spotify does not need to restart.
@@ -85,7 +85,7 @@ Minimized Spotify reduces animation work for power savings. The current FFT fram
 Remove the extension in Marketplace, then remove native FFT with:
 
 ```powershell
-irm https://raw.githubusercontent.com/Adamvi/Minimal-Wave-Visualizer/main/uninstall-native.ps1 | iex
+irm https://raw.githubusercontent.com/adamvi-VIp/Minimal-Wave-Visualizer/main/uninstall-native.ps1 | iex
 ```
 
 The uninstaller stops only the helper installed under `%LOCALAPPDATA%\MinimalWaveVisualizer`, restores every still-helper-owned shortcut/autostart/protocol value, and removes the native files. It does not overwrite Spotify launch settings changed by the user or another tool after installation.
@@ -95,7 +95,7 @@ The uninstaller stops only the helper installed under `%LOCALAPPDATA%\MinimalWav
 Requirements: Windows 11 x64, .NET 8 SDK, Node.js, Spicetify, and Classic Spotify for the local deployment script.
 
 ```powershell
-git clone https://github.com/Adamvi/Minimal-Wave-Visualizer.git
+git clone https://github.com/adamvi-VIp/Minimal-Wave-Visualizer.git
 cd Minimal-Wave-Visualizer
 .\scripts\apply-from-source.ps1
 ```

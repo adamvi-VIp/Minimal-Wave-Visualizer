@@ -3,7 +3,7 @@
 
   const ROOT_ID = "minimal-wave-visualizer";
   const EXTENSION_VERSION = "MWV v1.0";
-  const PROJECT_SETUP_URL = "https://github.com/Adamvi/Minimal-Wave-Visualizer#native-fft-setup";
+  const PROJECT_SETUP_URL = "https://github.com/adamvi-VIp/Minimal-Wave-Visualizer#native-fft-setup";
   const NATIVE_BASS_URL = "ws://127.0.0.1:43827/mwv-bass-v1";
   const BAR_COUNT = 56;
   const BAR_REFERENCE_FRAME_MS = 1000 * 1024 / 44100;

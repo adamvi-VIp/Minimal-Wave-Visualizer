@@ -8,3 +8,4 @@ release/
 tmp/
 *.tmp
 *.log
+/.vscode

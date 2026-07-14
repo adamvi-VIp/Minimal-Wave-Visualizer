@@ -5,7 +5,7 @@ param(
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
-$repository = "Adamvi/Minimal-Wave-Visualizer"
+$repository = "adamvi-VIp/Minimal-Wave-Visualizer"
 $assetName = "MinimalWaveBassHelper-win-x64.exe"
 $releaseBase = "https://github.com/$repository/releases/latest/download"
 $installDir = Join-Path $env:LOCALAPPDATA "MinimalWaveVisualizer"
