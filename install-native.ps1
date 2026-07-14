@@ -231,6 +231,10 @@ function Update-LaunchIntegration($target) {
 }
 
 function Invoke-SelfCheck {
+  if ($PSCommandPath -and (Get-Content -LiteralPath $PSCommandPath -Raw) -match '(?im)^\s*\$selfCheck\s*=') {
+    throw 'Installer variable shadows the public -SelfCheck switch.'
+  }
+
   $classic = [pscustomobject]@{ Kind = "classic"; Aumid = $null }
   $store = [pscustomobject]@{ Kind = "store"; Aumid = "SpotifyAB.Test!Spotify" }
   $classicArguments = Get-HelperLaunchArguments $classic @("--minimized")
@@ -276,8 +280,8 @@ try {
     throw "Native helper checksum verification failed."
   }
 
-  $selfCheck = Start-Process -FilePath $downloadedExe -ArgumentList "--self-check" -Wait -PassThru -WindowStyle Hidden
-  if ($selfCheck.ExitCode -ne 0) {
+  $helperSelfCheckProcess = Start-Process -FilePath $downloadedExe -ArgumentList "--self-check" -Wait -PassThru -WindowStyle Hidden
+  if ($helperSelfCheckProcess.ExitCode -ne 0) {
     throw "Native helper self-check failed."
   }
 
