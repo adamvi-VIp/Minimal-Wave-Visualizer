@@ -173,7 +173,7 @@ function Save-InstallState($target) {
   $runPresent = $false
   $runValue = $null
   if (Test-Path -LiteralPath $runKey) {
-    $runValue = Get-ItemPropertyValue -LiteralPath $runKey -Name "Spotify" -ErrorAction SilentlyContinue
+    $runValue = (Get-ItemProperty -LiteralPath $runKey -ErrorAction SilentlyContinue).Spotify
     $runPresent = $null -ne $runValue
   }
   $protocol = Get-ProtocolValue
@@ -227,7 +227,7 @@ function Update-LaunchIntegration($target) {
   }
 
   if (Test-Path -LiteralPath $runKey) {
-    $currentRun = Get-ItemPropertyValue -LiteralPath $runKey -Name "Spotify" -ErrorAction SilentlyContinue
+    $currentRun = (Get-ItemProperty -LiteralPath $runKey -ErrorAction SilentlyContinue).Spotify
     if ($currentRun) {
       $autostart = @("--autostart", "--minimized")
       Set-ItemProperty -LiteralPath $runKey -Name "Spotify" -Value ('"{0}" {1}' -f $helperExe, ((Get-HelperLaunchArguments $target $autostart) -join " "))

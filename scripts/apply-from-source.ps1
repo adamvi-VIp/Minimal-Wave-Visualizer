@@ -182,7 +182,7 @@ function Update-SpotifyShortcuts([bool]$useHelper) {
 
 function Update-SpotifyRegistryLaunches([bool]$useHelper) {
   if (Test-Path -LiteralPath $spotifyRunKey) {
-    $runCommand = [string](Get-ItemPropertyValue -LiteralPath $spotifyRunKey -Name "Spotify" -ErrorAction SilentlyContinue)
+    $runCommand = [string]((Get-ItemProperty -LiteralPath $spotifyRunKey -ErrorAction SilentlyContinue).Spotify)
     $nextRunCommand = Convert-SpotifyLaunchCommand $runCommand $useHelper
     if ($nextRunCommand -ne $runCommand) {
       Set-ItemProperty -LiteralPath $spotifyRunKey -Name "Spotify" -Value $nextRunCommand

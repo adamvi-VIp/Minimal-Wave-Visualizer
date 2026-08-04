@@ -122,7 +122,7 @@ if ($state.StoreShortcutCreated -and (Test-Path -LiteralPath $storeShortcut)) {
 }
 
 if (Test-Path -LiteralPath $runKey) {
-  $currentRun = Get-ItemPropertyValue -LiteralPath $runKey -Name "Spotify" -ErrorAction SilentlyContinue
+  $currentRun = (Get-ItemProperty -LiteralPath $runKey -ErrorAction SilentlyContinue).Spotify
   if (Test-HelperCommand ([string]$currentRun)) {
     if ($state.RunPresent) {
       Set-ItemProperty -LiteralPath $runKey -Name "Spotify" -Value ([string]$state.RunValue)
