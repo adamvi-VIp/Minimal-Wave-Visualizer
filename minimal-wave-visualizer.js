@@ -1666,6 +1666,8 @@
   let lastBassFrameAt = 0;
   let progressMs = 0;
   let durationMs = 0;
+  let lastProgressSampledMs = null;
+  let lastProgressSampledAt = 0;
   let displayedLevels = [];
   let renderedBarStyles = [];
   let lastBarUpdateAt = 0;
@@ -2269,6 +2271,7 @@
 
   function updateProgress(event) {
     try {
+      const now = performance.now();
       const player = window.Spicetify && Spicetify.Player;
       const nextDuration = normalizeDurationMs(playerDurationRaw(player));
       const percent = player && typeof player.getProgressPercent === "function"
@@ -2283,7 +2286,20 @@
       durationMs = nextDuration || durationMs;
 
       if (nextProgress !== null) {
-        progressMs = durationMs ? clamp(nextProgress, 0, durationMs) : Math.max(0, nextProgress);
+        if (lastProgressSampledMs === null || Math.abs(nextProgress - lastProgressSampledMs) > 10) {
+          lastProgressSampledMs = nextProgress;
+          lastProgressSampledAt = now;
+          progressMs = durationMs ? clamp(nextProgress, 0, durationMs) : Math.max(0, nextProgress);
+        } else if (isPlaying()) {
+          const elapsed = Math.max(0, now - lastProgressSampledAt);
+          const interpolated = (lastProgressSampledMs ?? progressMs) + elapsed;
+          progressMs = durationMs ? clamp(interpolated, 0, durationMs) : Math.max(0, interpolated);
+        }
+      } else if (isPlaying() && lastProgressSampledAt > 0) {
+        const elapsed = Math.max(0, now - lastProgressSampledAt);
+        const interpolated = progressMs + elapsed;
+        lastProgressSampledAt = now;
+        progressMs = durationMs ? clamp(interpolated, 0, durationMs) : Math.max(0, interpolated);
       }
 
     } catch (error) {
@@ -2605,8 +2621,13 @@
     placementTimer = window.setInterval(placeRoot, 1500);
     const resetPlayerMotion = (event) => {
       playerPlaying = isPlaying();
+      lastProgressSampledMs = null;
+      lastProgressSampledAt = performance.now();
       updateProgress(event);
       resetBassMotion(false);
+      if (playerPlaying && !raf && documentFocusState() && !documentHiddenState()) {
+        resumeForegroundDraw();
+      }
     };
 
     addPlayerListener("songchange", () => {
@@ -2615,15 +2636,30 @@
       renderedBarStyles = [];
       lastNativeBarFrameAt = null;
       lastBarStateKey = "";
+      lastProgressSampledMs = null;
+      lastProgressSampledAt = performance.now();
       resetBassMotion(true);
       resetDropMotion();
       updateProgress();
       loadTrackData(true);
       window.setTimeout(placeRoot, 120);
+      if (isPlaying() && !raf && documentFocusState() && !documentHiddenState()) {
+        resumeForegroundDraw();
+      }
     });
     addPlayerListener("onplaypause", resetPlayerMotion);
-    addPlayerListener("onprogress", updateProgress);
-    addPlayerListener("progress", updateProgress);
+    addPlayerListener("onprogress", (event) => {
+      updateProgress(event);
+      if (isPlaying() && !raf && documentFocusState() && !documentHiddenState()) {
+        resumeForegroundDraw();
+      }
+    });
+    addPlayerListener("progress", (event) => {
+      updateProgress(event);
+      if (isPlaying() && !raf && documentFocusState() && !documentHiddenState()) {
+        resumeForegroundDraw();
+      }
+    });
     addPlayerListener("seek", resetPlayerMotion);
     addPlayerListener("onseek", resetPlayerMotion);
 
