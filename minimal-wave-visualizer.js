@@ -1653,6 +1653,7 @@
 
   let root;
   let statusLink;
+  let modalOverlay = null;
   let bars = [];
   let raf = 0;
   let currentUri = "";
@@ -2073,8 +2074,337 @@
           width: auto;
         }
       }
+
+      .minimal-wave-visualizer__modal-overlay {
+        align-items: center;
+        background: rgba(0, 0, 0, 0.78);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: flex;
+        font-family: var(--font-family, spotify-circular, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif);
+        height: 100vh;
+        justify-content: center;
+        left: 0;
+        opacity: 0;
+        pointer-events: none;
+        position: fixed;
+        top: 0;
+        transition: opacity 200ms ease;
+        width: 100vw;
+        z-index: 999999;
+      }
+
+      .minimal-wave-visualizer__modal-overlay.is-visible {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .minimal-wave-visualizer__modal-card {
+        background: #181818;
+        background: linear-gradient(150deg, #222222, #121212);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 16px;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), 0 0 35px rgba(30, 215, 96, 0.15);
+        box-sizing: border-box;
+        color: #ffffff;
+        max-width: 540px;
+        padding: 24px 28px;
+        transform: scale(0.94);
+        transition: transform 200ms ease;
+        width: 90%;
+      }
+
+      .minimal-wave-visualizer__modal-overlay.is-visible .minimal-wave-visualizer__modal-card {
+        transform: scale(1);
+      }
+
+      .minimal-wave-visualizer__modal-header {
+        align-items: center;
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 14px;
+      }
+
+      .minimal-wave-visualizer__modal-title {
+        color: #1ed760;
+        font-size: 20px;
+        font-weight: 700;
+        margin: 0;
+      }
+
+      .minimal-wave-visualizer__modal-close {
+        background: transparent;
+        border: none;
+        border-radius: 50%;
+        color: #a7a7a7;
+        cursor: pointer;
+        font-size: 22px;
+        line-height: 1;
+        padding: 4px 10px;
+        transition: color 150ms, background 150ms;
+      }
+
+      .minimal-wave-visualizer__modal-close:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+      }
+
+      .minimal-wave-visualizer__modal-description {
+        color: #b3b3b3;
+        font-size: 14px;
+        line-height: 1.5;
+        margin-bottom: 20px;
+      }
+
+      .minimal-wave-visualizer__modal-section {
+        margin-bottom: 16px;
+      }
+
+      .minimal-wave-visualizer__modal-label {
+        color: #e5e5e5;
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+      }
+
+      .minimal-wave-visualizer__modal-codebox {
+        align-items: center;
+        background: #090909;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        box-sizing: border-box;
+        display: flex;
+        gap: 12px;
+        justify-content: space-between;
+        padding: 8px 12px;
+      }
+
+      .minimal-wave-visualizer__modal-code {
+        color: #1ed760;
+        font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+        font-size: 11px;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+
+      .minimal-wave-visualizer__modal-copybtn {
+        background: #1ed760;
+        border: none;
+        border-radius: 16px;
+        color: #000000;
+        cursor: pointer;
+        flex-shrink: 0;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 6px 14px;
+        transition: background 150ms, transform 100ms;
+        white-space: nowrap;
+      }
+
+      .minimal-wave-visualizer__modal-copybtn:hover {
+        background: #1fdf64;
+        transform: scale(1.03);
+      }
+
+      .minimal-wave-visualizer__modal-copybtn:active {
+        transform: scale(0.97);
+      }
+
+      .minimal-wave-visualizer__modal-footer {
+        align-items: center;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+        padding-top: 16px;
+      }
+
+      .minimal-wave-visualizer__modal-checkbox-label {
+        align-items: center;
+        color: #a7a7a7;
+        cursor: pointer;
+        display: flex;
+        font-size: 13px;
+        gap: 8px;
+      }
+
+      .minimal-wave-visualizer__modal-donebtn {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 18px;
+        color: #ffffff;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 7px 20px;
+        transition: background 150ms;
+      }
+
+      .minimal-wave-visualizer__modal-donebtn:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
     `;
     document.head.appendChild(style);
+  }
+
+  function createNativeModal() {
+    if (modalOverlay) {
+      return;
+    }
+
+    modalOverlay = document.createElement("div");
+    modalOverlay.className = "minimal-wave-visualizer__modal-overlay";
+
+    const card = document.createElement("div");
+    card.className = "minimal-wave-visualizer__modal-card";
+
+    const header = document.createElement("div");
+    header.className = "minimal-wave-visualizer__modal-header";
+
+    const title = document.createElement("h3");
+    title.className = "minimal-wave-visualizer__modal-title";
+    title.textContent = "⚡ Native FFT Setup";
+
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "minimal-wave-visualizer__modal-close";
+    closeBtn.textContent = "×";
+    closeBtn.title = "Close";
+    closeBtn.addEventListener("click", closeNativeModal);
+
+    header.appendChild(title);
+    header.appendChild(closeBtn);
+    card.appendChild(header);
+
+    const desc = document.createElement("p");
+    desc.className = "minimal-wave-visualizer__modal-description";
+    desc.textContent = "Minimal Wave Visualizer works best with Native FFT enabled for exact 20–80 Hz sub-bass motion and full frequency visualization.";
+    card.appendChild(desc);
+
+    const installCmd = "irm https://raw.githubusercontent.com/adamvi-VIp/Minimal-Wave-Visualizer/main/install-native.ps1 | iex";
+    const uninstallCmd = "irm https://raw.githubusercontent.com/adamvi-VIp/Minimal-Wave-Visualizer/main/uninstall-native.ps1 | iex";
+
+    const installSec = document.createElement("div");
+    installSec.className = "minimal-wave-visualizer__modal-section";
+
+    const installLabel = document.createElement("span");
+    installLabel.className = "minimal-wave-visualizer__modal-label";
+    installLabel.textContent = "⚡ Installation Command (Run in PowerShell):";
+    installSec.appendChild(installLabel);
+
+    const installCodeBox = document.createElement("div");
+    installCodeBox.className = "minimal-wave-visualizer__modal-codebox";
+
+    const installCode = document.createElement("span");
+    installCode.className = "minimal-wave-visualizer__modal-code";
+    installCode.textContent = installCmd;
+
+    const installCopyBtn = document.createElement("button");
+    installCopyBtn.className = "minimal-wave-visualizer__modal-copybtn";
+    installCopyBtn.textContent = "Copy Command";
+    installCopyBtn.addEventListener("click", () => {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(installCmd);
+      }
+      installCopyBtn.textContent = "✓ Copied!";
+      window.setTimeout(() => {
+        installCopyBtn.textContent = "Copy Command";
+      }, 2000);
+    });
+
+    installCodeBox.appendChild(installCode);
+    installCodeBox.appendChild(installCopyBtn);
+    installSec.appendChild(installCodeBox);
+    card.appendChild(installSec);
+
+    const uninstallSec = document.createElement("div");
+    uninstallSec.className = "minimal-wave-visualizer__modal-section";
+
+    const uninstallLabel = document.createElement("span");
+    uninstallLabel.className = "minimal-wave-visualizer__modal-label";
+    uninstallLabel.textContent = "🗑️ Uninstallation Command (Run in PowerShell anytime):";
+    uninstallSec.appendChild(uninstallLabel);
+
+    const uninstallCodeBox = document.createElement("div");
+    uninstallCodeBox.className = "minimal-wave-visualizer__modal-codebox";
+
+    const uninstallCode = document.createElement("span");
+    uninstallCode.className = "minimal-wave-visualizer__modal-code";
+    uninstallCode.textContent = uninstallCmd;
+
+    const uninstallCopyBtn = document.createElement("button");
+    uninstallCopyBtn.className = "minimal-wave-visualizer__modal-copybtn";
+    uninstallCopyBtn.textContent = "Copy Command";
+    uninstallCopyBtn.addEventListener("click", () => {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(uninstallCmd);
+      }
+      uninstallCopyBtn.textContent = "✓ Copied!";
+      window.setTimeout(() => {
+        uninstallCopyBtn.textContent = "Copy Command";
+      }, 2000);
+    });
+
+    uninstallCodeBox.appendChild(uninstallCode);
+    uninstallCodeBox.appendChild(uninstallCopyBtn);
+    uninstallSec.appendChild(uninstallCodeBox);
+    card.appendChild(uninstallSec);
+
+    const footer = document.createElement("div");
+    footer.className = "minimal-wave-visualizer__modal-footer";
+
+    const checkboxLabel = document.createElement("label");
+    checkboxLabel.className = "minimal-wave-visualizer__modal-checkbox-label";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    try {
+      checkbox.checked = window.localStorage.getItem("mwv_dismiss_native_modal") === "true";
+    } catch {
+      checkbox.checked = false;
+    }
+    checkbox.addEventListener("change", () => {
+      try {
+        window.localStorage.setItem("mwv_dismiss_native_modal", checkbox.checked ? "true" : "false");
+      } catch {}
+    });
+
+    const checkboxText = document.createTextNode("Don't show this popup automatically on startup");
+    checkboxLabel.appendChild(checkbox);
+    checkboxLabel.appendChild(checkboxText);
+
+    const doneBtn = document.createElement("button");
+    doneBtn.className = "minimal-wave-visualizer__modal-donebtn";
+    doneBtn.textContent = "Close";
+    doneBtn.addEventListener("click", closeNativeModal);
+
+    footer.appendChild(checkboxLabel);
+    footer.appendChild(doneBtn);
+    card.appendChild(footer);
+
+    modalOverlay.appendChild(card);
+    modalOverlay.addEventListener("click", (event) => {
+      if (event.target === modalOverlay) {
+        closeNativeModal();
+      }
+    });
+
+    document.body.appendChild(modalOverlay);
+  }
+
+  function openNativeModal() {
+    createNativeModal();
+    if (modalOverlay) {
+      modalOverlay.classList.add("is-visible");
+    }
+  }
+
+  function closeNativeModal() {
+    if (modalOverlay) {
+      modalOverlay.classList.remove("is-visible");
+    }
   }
 
   function createShockwaveLayer() {
@@ -2578,6 +2908,8 @@
 
     document.getElementById(ROOT_ID + "-style")?.remove();
     shockwave?.remove();
+    modalOverlay?.remove();
+    modalOverlay = null;
     root?.remove();
     statusLink = null;
     delete window.__minimalWaveVisualizer;
@@ -2604,7 +2936,11 @@
     statusLink.target = "_blank";
     statusLink.rel = "noopener noreferrer";
     statusLink.textContent = statusText(false);
-    statusLink.title = "Preview mode is active. Open the native FFT setup guide.";
+    statusLink.title = "Preview mode is active. Click to open native FFT setup modal.";
+    statusLink.addEventListener("click", (event) => {
+      event.preventDefault();
+      openNativeModal();
+    });
     root.appendChild(statusLink);
 
     bars = Array.from({ length: BAR_COUNT }, () => {
@@ -2690,6 +3026,16 @@
     updateProgress();
     loadTrackData(true);
     draw();
+
+    window.setTimeout(() => {
+      let dismissed = false;
+      try {
+        dismissed = window.localStorage.getItem("mwv_dismiss_native_modal") === "true";
+      } catch {}
+      if (!nativeStatusActive && !dismissed) {
+        openNativeModal();
+      }
+    }, 1500);
   }
 
   boot();
