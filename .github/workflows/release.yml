@@ -73,11 +73,20 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create $env:GITHUB_REF_NAME `
-            --verify-tag `
-            --generate-notes `
-            --title "Minimal Wave Visualizer $env:GITHUB_REF_NAME" `
-            .\release\MinimalWaveBassHelper-win-x64.exe `
-            .\release\SHA256SUMS.txt `
-            .\release\install-native.ps1 `
-            .\release\uninstall-native.ps1
+          $assets = @(
+            '.\release\MinimalWaveBassHelper-win-x64.exe'
+            '.\release\SHA256SUMS.txt'
+            '.\release\install-native.ps1'
+            '.\release\uninstall-native.ps1'
+          )
+
+          $existingRelease = gh release view $env:GITHUB_REF_NAME --json tagName 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $env:GITHUB_REF_NAME $assets --clobber
+          } else {
+            gh release create $env:GITHUB_REF_NAME `
+              --verify-tag `
+              --generate-notes `
+              --title "Minimal Wave Visualizer $env:GITHUB_REF_NAME" `
+              $assets
+          }
