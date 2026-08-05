@@ -1,5 +1,6 @@
 {
   "name": "Minimal Wave Visualizer",
+  "version": "1.1.0",
   "description": "A cinematic 56-band visualizer with bass shake and glass shockwaves. Native FFT is required for full fidelity on Windows 11 x64; Marketplace-only installs start in preview fallback.",
   "preview": "assets/marketplace-preview.png",
   "main": "minimal-wave-visualizer.js",

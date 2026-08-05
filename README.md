@@ -18,7 +18,7 @@ A minimal, full-width 56-band spectrum for Spicetify with true sub-bass motion a
 
 ### 1. Install the Marketplace extension
 
-Install **Minimal Wave Visualizer** from Spicetify Marketplace. The extension starts immediately in `MWV v1.0 PREVIEW`, which is a usable analysis-based fallback.
+Install **Minimal Wave Visualizer** from Spicetify Marketplace. The extension starts immediately in `MWV v1.1 PREVIEW`, which is a usable analysis-based fallback.
 
 ### 2. Enable native FFT
 
@@ -28,7 +28,7 @@ Native FFT is the intended full-fidelity experience and is required for exact su
 irm https://raw.githubusercontent.com/adamvi-VIp/Minimal-Wave-Visualizer/main/install-native.ps1 | iex
 ```
 
-The label changes to `MWV v1.0 FFT` as soon as the helper sends its first valid frame. Spotify does not need to restart.
+The label changes to `MWV v1.1 FFT` as soon as the helper sends its first valid frame. Spotify does not need to restart.
 
 The installer supports both Spotify variants:
 
