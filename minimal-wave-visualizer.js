@@ -2,7 +2,7 @@
   "use strict";
 
   const ROOT_ID = "minimal-wave-visualizer";
-  const EXTENSION_VERSION = "MWV v1.0";
+  const EXTENSION_VERSION = "MWV v1.1";
   const PROJECT_SETUP_URL = "https://github.com/adamvi-VIp/Minimal-Wave-Visualizer#native-fft-setup";
   const NATIVE_BASS_URL = "ws://127.0.0.1:43827/mwv-bass-v1";
   const BAR_COUNT = 56;
@@ -128,6 +128,10 @@
 
   function nativeBassStatus(frame, socketOpen) {
     return Boolean(socketOpen && frame && frame.capturing);
+  }
+
+  function isNativeBassActive() {
+    return nativeBassStatus(nativeBassFrame, Boolean(nativeSocket && nativeSocket.readyState === 1));
   }
 
   function bassShakeRate(activeMs, reactivity) {
@@ -1608,7 +1612,7 @@
       throw new Error("steady bass should shake slowly while short hits and reactive pulses stay fast");
     }
 
-    if (statusText(false) !== "MWV v1.0 PREVIEW" || statusText(true) !== "MWV v1.0 FFT") {
+    if (statusText(false) !== "MWV v1.1 PREVIEW" || statusText(true) !== "MWV v1.1 FFT") {
       throw new Error("v1.0 status should clearly distinguish preview and native FFT modes");
     }
 
@@ -2395,6 +2399,89 @@
   }
 
   function openNativeModal() {
+    const installCmd = "irm https://raw.githubusercontent.com/adamvi-VIp/Minimal-Wave-Visualizer/main/install-native.ps1 | iex";
+    const uninstallCmd = "irm https://raw.githubusercontent.com/adamvi-VIp/Minimal-Wave-Visualizer/main/uninstall-native.ps1 | iex";
+
+    if (typeof Spicetify !== "undefined" && Spicetify.PopupModal && typeof Spicetify.PopupModal.display === "function") {
+      const container = document.createElement("div");
+      container.style.cssText = "font-family: var(--font-family, spotify-circular, sans-serif); color: #fff; padding: 10px 0;";
+
+      const isDismissed = () => {
+        try {
+          return window.localStorage.getItem("mwv_dismiss_native_modal") === "true";
+        } catch {
+          return false;
+        }
+      };
+
+      container.innerHTML = `
+        <p style="color: #b3b3b3; font-size: 14px; margin-bottom: 20px; line-height: 1.5;">
+          Minimal Wave Visualizer works best with Native FFT enabled for exact 20–80 Hz sub-bass motion and full frequency response.
+        </p>
+        <div style="margin-bottom: 18px;">
+          <label style="display: block; font-size: 12px; font-weight: 700; color: #e5e5e5; text-transform: uppercase; margin-bottom: 6px;">
+            ⚡ Installation Command (Run in PowerShell):
+          </label>
+          <div style="display: flex; align-items: center; justify-content: space-between; background: #090909; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px 14px; gap: 12px;">
+            <code style="color: #1ed760; font-family: monospace; font-size: 11px; word-break: break-all;">${installCmd}</code>
+            <button id="mwv-spicetify-copy-install" style="background: #1ed760; color: #000; border: none; border-radius: 16px; font-weight: 700; font-size: 12px; padding: 6px 14px; cursor: pointer; white-space: nowrap;">Copy Command</button>
+          </div>
+        </div>
+        <div style="margin-bottom: 18px;">
+          <label style="display: block; font-size: 12px; font-weight: 700; color: #e5e5e5; text-transform: uppercase; margin-bottom: 6px;">
+            🗑️ Uninstallation Command (Run in PowerShell anytime):
+          </label>
+          <div style="display: flex; align-items: center; justify-content: space-between; background: #090909; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px 14px; gap: 12px;">
+            <code style="color: #1ed760; font-family: monospace; font-size: 11px; word-break: break-all;">${uninstallCmd}</code>
+            <button id="mwv-spicetify-copy-uninstall" style="background: #1ed760; color: #000; border: none; border-radius: 16px; font-weight: 700; font-size: 12px; padding: 6px 14px; cursor: pointer; white-space: nowrap;">Copy Command</button>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px; margin-top: 20px;">
+          <label style="display: flex; align-items: center; gap: 8px; color: #a7a7a7; font-size: 13px; cursor: pointer;">
+            <input type="checkbox" id="mwv-spicetify-dismiss-chk" ${isDismissed() ? "checked" : ""} />
+            Don't show this popup automatically on startup
+          </label>
+        </div>
+      `;
+
+      const copyInstall = container.querySelector("#mwv-spicetify-copy-install");
+      if (copyInstall) {
+        copyInstall.addEventListener("click", () => {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(installCmd);
+          }
+          copyInstall.textContent = "✓ Copied!";
+          window.setTimeout(() => { copyInstall.textContent = "Copy Command"; }, 2000);
+        });
+      }
+
+      const copyUninstall = container.querySelector("#mwv-spicetify-copy-uninstall");
+      if (copyUninstall) {
+        copyUninstall.addEventListener("click", () => {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(uninstallCmd);
+          }
+          copyUninstall.textContent = "✓ Copied!";
+          window.setTimeout(() => { copyUninstall.textContent = "Copy Command"; }, 2000);
+        });
+      }
+
+      const chk = container.querySelector("#mwv-spicetify-dismiss-chk");
+      if (chk) {
+        chk.addEventListener("change", () => {
+          try {
+            window.localStorage.setItem("mwv_dismiss_native_modal", chk.checked ? "true" : "false");
+          } catch {}
+        });
+      }
+
+      Spicetify.PopupModal.display({
+        title: "⚡ Native FFT Setup",
+        content: container,
+      });
+      return;
+    }
+
     createNativeModal();
     if (modalOverlay) {
       modalOverlay.classList.add("is-visible");
@@ -3032,7 +3119,7 @@
       try {
         dismissed = window.localStorage.getItem("mwv_dismiss_native_modal") === "true";
       } catch {}
-      if (!nativeStatusActive && !dismissed) {
+      if (!isNativeBassActive() && !dismissed) {
         openNativeModal();
       }
     }, 1500);

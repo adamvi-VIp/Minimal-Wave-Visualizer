@@ -277,7 +277,7 @@ function Invoke-SelfCheck {
 
 if ($SelfCheck) {
   Invoke-SelfCheck
-  exit 0
+  return
 }
 
 if (-not [Environment]::Is64BitOperatingSystem -or [Environment]::OSVersion.Version.Build -lt 20348) {

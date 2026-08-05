@@ -86,12 +86,12 @@ function Invoke-SelfCheck {
 
 if ($SelfCheck) {
   Invoke-SelfCheck
-  exit 0
+  return
 }
 
 if (-not (Test-Path -LiteralPath $stateFile)) {
   Write-Host "Minimal Wave Visualizer native FFT is not installed."
-  exit 0
+  return
 }
 
 $state = Get-Content -LiteralPath $stateFile -Raw -Encoding UTF8 | ConvertFrom-Json
