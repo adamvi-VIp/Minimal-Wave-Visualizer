@@ -295,14 +295,22 @@ try {
   Invoke-WebRequest -UseBasicParsing -Uri "$releaseBase/SHA256SUMS.txt" -OutFile $downloadedHashes
 
   $expectedHash = (Get-Content -LiteralPath $downloadedHashes | Where-Object { $_ -match [Regex]::Escape($assetName) } | Select-Object -First 1) -replace '\s+\*?.*$', ''
-  $actualHash = (Get-FileHash -LiteralPath $downloadedExe -Algorithm SHA256).Hash
+  try {
+    $actualHash = (Get-FileHash -LiteralPath $downloadedExe -Algorithm SHA256).Hash
+  } catch {
+    throw "Could not read the downloaded helper. Your antivirus might have blocked or quarantined it. Please temporarily disable it or add an exclusion."
+  }
   if (-not $expectedHash -or $actualHash -ne $expectedHash.Trim().ToUpperInvariant()) {
     throw "Native helper checksum verification failed."
   }
 
-  $helperSelfCheckProcess = Start-Process -FilePath $downloadedExe -ArgumentList "--self-check" -Wait -PassThru -WindowStyle Hidden
-  if ($helperSelfCheckProcess.ExitCode -ne 0) {
-    throw "Native helper self-check failed."
+  try {
+    $helperSelfCheckProcess = Start-Process -FilePath $downloadedExe -ArgumentList "--self-check" -Wait -PassThru -WindowStyle Hidden
+    if ($helperSelfCheckProcess.ExitCode -ne 0) {
+      throw "Native helper self-check failed. Your antivirus might have blocked execution."
+    }
+  } catch {
+    throw "Failed to start the helper for self-check. Your antivirus might have blocked it. Please temporarily disable it or add an exclusion."
   }
 
   New-Item -ItemType Directory -Path $installDir -Force | Out-Null
@@ -322,7 +330,7 @@ try {
   }
 } finally {
   if (Test-Path -LiteralPath $downloadDir) {
-    Remove-Item -LiteralPath $downloadDir -Recurse -Force
+    Remove-Item -LiteralPath $downloadDir -Recurse -Force -ErrorAction SilentlyContinue
   }
 }
 

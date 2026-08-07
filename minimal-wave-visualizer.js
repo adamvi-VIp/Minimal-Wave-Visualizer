@@ -2,7 +2,7 @@
   "use strict";
 
   const ROOT_ID = "minimal-wave-visualizer";
-  const EXTENSION_VERSION = "MWV v1.1";
+  const EXTENSION_VERSION = "MWV v1.1.1";
   const PROJECT_SETUP_URL = "https://github.com/adamvi-VIp/Minimal-Wave-Visualizer#native-fft-setup";
   const NATIVE_BASS_URL = "ws://127.0.0.1:43827/mwv-bass-v1";
   const BAR_COUNT = 56;
@@ -1612,7 +1612,7 @@
       throw new Error("steady bass should shake slowly while short hits and reactive pulses stay fast");
     }
 
-    if (statusText(false) !== "MWV v1.1 PREVIEW" || statusText(true) !== "MWV v1.1 FFT") {
+    if (statusText(false) !== "MWV v1.1.1 PREVIEW" || statusText(true) !== "MWV v1.1.1 FFT") {
       throw new Error("v1.0 status should clearly distinguish preview and native FFT modes");
     }
 

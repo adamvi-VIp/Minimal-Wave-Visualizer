@@ -8,8 +8,13 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyName>MinimalWaveBassHelper</AssemblyName>
     <RootNamespace>MinimalWaveBassHelper</RootNamespace>
-    <Version>1.1.0</Version>
-    <FileVersion>1.1.0.0</FileVersion>
-    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <Version>1.1.1</Version>
+    <FileVersion>1.1.1.0</FileVersion>
+    <AssemblyVersion>1.1.1.0</AssemblyVersion>
+    <AssemblyTitle>Minimal Wave Visualizer Bass Helper</AssemblyTitle>
+    <AssemblyDescription>Captures audio for Minimal Wave Visualizer</AssemblyDescription>
+    <AssemblyCompany>adamvi-VIp</AssemblyCompany>
+    <AssemblyProduct>Minimal Wave Visualizer</AssemblyProduct>
+    <AssemblyCopyright>Copyright (c) adamvi-VIp</AssemblyCopyright>
   </PropertyGroup>
 </Project>
